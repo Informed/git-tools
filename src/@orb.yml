@@ -1,14 +1,14 @@
 version: 2.1
 
 description: >
-  Sample orb description
+  "Fork" of the circleci git tools to fix some bugs
 # What will your orb allow users to accomplish?
 # Descriptions should be short, simple, and informative.
 
 # This information will be displayed in the orb registry and is not mandatory.
 display:
-  home_url: "https://www.example.com/docs"
-  source_url: "https://www.github.com/<organization>/<project-name>"
+  home_url: "https://www.github.com/Informed/git-tools"
+  source_url: "https://www.github.com/Informed/git-tools"
 
 # If your orb requires other orbs, you can import them like this. Otherwise remove the "orbs" stanza.
 # orbs:
