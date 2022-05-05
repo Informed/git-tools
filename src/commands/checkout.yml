@@ -1,0 +1,139 @@
+description: Checkout your source from your VCS provider.
+parameters:
+  auth:
+    default: SSH
+    description: 'Authenticate over your prefered method. (HTTPS, SSH)'
+    enum:
+      - HTTPS
+      - SSH
+    type: enum
+  cache_enabled:
+    default: true
+    description: Cache your checked out code between Workflow jobs.
+    type: boolean
+  depth:
+    default: 0
+    description: Set a clone depth. A value of 0 will not use a shallow clone.
+    type: integer
+steps:
+  - git-tools-setup
+  - run:
+      command: >
+        # Workaround old docker images with incorrect $HOME
+
+        # check https://github.com/docker/docker/issues/2968 for details
+
+        if [ "${HOME}" = "/" ]
+
+        then
+          export HOME=$(getent passwd $(id -un) | cut -d: -f6)
+        fi
+
+        # Add known hosts
+
+        mkdir -p ~/.ssh
+
+        echo 'github.com ssh-rsa
+        AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='
+        \>> ~/.ssh/known_hosts
+
+        echo 'bitbucket.org ssh-rsa
+        AAAAB3NzaC1yc2EAAAABIwAAAQEAubiN81eDcafrgMeLzaFPsw2kNvEcqTKl/VqLat/MaB33pZy0y3rJZtnqwR2qOOvbwKZYKiEO1O6VqNEBxKvJJelCq0dTXWT5pbO2gDXC6h6QDXCaHo6pOHGPUy+YBaGQRGuSusMEASYiWunYN0vCAI8QaXnWMXNMdFP3jHAJH0eDsoiGnLPBlBp4TNm6rYI74nMzgz3B9IikW4WVK+dc8KZJZWYjAuORU3jc1c/NPskD2ASinf8v3xnfXeukU0sJ5N6m5E8VLjObPEO+mN2t/FZTMZLiFqPWc/ALSqnMnnhwrNi2rbfg/rd/IpL8Le3pSBne8+seeFVBoGqzHM9yXw=='
+        \>> ~/.ssh/known_hosts
+
+        # Set Checkout Key
+
+        (umask 077; touch ~/.ssh/id_rsa)
+
+        chmod 0600 ~/.ssh/id_rsa
+
+        (cat \<<EOF > ~/.ssh/id_rsa
+
+        $CHECKOUT_KEY
+
+        EOF
+
+        )
+
+        # Set authentication method
+
+        if [ "<< parameters.auth >>" == "SSH" ]
+
+        then
+          git config --global url."ssh://git@github.com".insteadOf "https://github.com" || true
+          git config --global gc.auto 0 || true
+        fi
+
+        if [ << parameters.auth >> == "HTTPS" ]
+
+        then
+          git config --global url."https://github.com/".insteadOf "git://github.com/" || true
+          git config --global gc.auto 0 || true
+        fi
+      name: Git-Tools Checkout Config
+      shell: /bin/sh -e
+  - when:
+      condition: << parameters.cache_enabled >>
+      steps:
+        - restore_cache:
+            keys:
+              - 'gitTools-v1-{{ .Branch }}-{{ .Revision }}'
+            name: Checking For Source Cache
+        - run:
+            command: >
+              # This step will check to see if ".git" directory has been
+              restored, and if not the source will be checked out from the
+              remote.
+
+              if [ ! -d /home/circleci/project/.git ]
+
+              then
+                echo "No git repo present. Performing Clone."
+                # Checkout code
+                if [ -e /home/circleci/project/.git ]
+                then
+                  cd /home/circleci/project
+                  git remote set-url origin "$CIRCLE_REPOSITORY_URL" || true
+                else
+                  mkdir -p /home/circleci/project
+                  cd /home/circleci/project
+                  git clone "$CIRCLE_REPOSITORY_URL" .
+                fi
+                if [ -n "$CIRCLE_TAG" ]
+                then
+                  git fetch --force --tags origin "refs/tags/${CIRCLE_TAG}"
+                else
+                  git fetch --force --tags origin "master:remotes/origin/master"
+                fi
+              else
+                echo "Cache located"
+              fi
+            name: Fetching Source Location
+        - save_cache:
+            key: 'source-v1-{{ .Branch }}-{{ .Revision }}'
+            name: Saving Source Cache
+            paths:
+              - .git
+  - unless:
+      condition: << parameters.cache_enabled >>
+      steps:
+        - run:
+            command: |
+              # Checkout code
+              if [ -e /home/circleci/project/.git ]
+              then
+                cd /home/circleci/project
+                git remote set-url origin "$CIRCLE_REPOSITORY_URL" || true
+              else
+                mkdir -p /home/circleci/project
+                cd /home/circleci/project
+                git clone "$CIRCLE_REPOSITORY_URL" .
+              fi
+
+              if [ -n "$CIRCLE_TAG" ]
+              then
+                git fetch --force --tags origin "refs/tags/${CIRCLE_TAG}"
+              else
+                git fetch --force --tags origin "master:remotes/origin/master"
+              fi
+            name: Checking out Code
