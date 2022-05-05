@@ -7,8 +7,6 @@ orbs:
 filters: &filters
   tags:
     only: /.*/
-  branches:
-    only: main
 
 workflows:
   lint-pack:
@@ -29,7 +27,11 @@ workflows:
             [orb-tools/lint, orb-tools/review, orb-tools/pack, shellcheck/check]
           # Use a context to hold your publishing token.
           context: <publishing-context>
-          filters: *filters
+          filters:
+            branches:
+              only: main
+            tags:
+              only: /.*/
       # Triggers the next workflow in the Orb Development Kit.
       - orb-tools/continue:
           pipeline-number: << pipeline.number >>
