@@ -1,0 +1,13 @@
+description: >
+  Increment patch version automatically on commit
+usage:
+  version: 2.1
+  orbs:
+    git-tools: informed/git-tools@x.y
+
+  workflows:
+    increment_patch_version:
+      jobs:
+        - informed/git-tools:
+            increment_patch: true
+            increment_tag: true
