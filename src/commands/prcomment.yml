@@ -1,0 +1,59 @@
+description: >-
+  If the current commit is a part of a pull request, the commit message will be
+  added to the PR as a comment. Only available for GitHub
+parameters:
+  comment:
+    default: '${VCS_COMMIT_MESSAGE}'
+    description: >-
+      The comment to be submit to the PR request upon commit. By default, this
+      will be the commit message
+    type: string
+  logpath:
+    default: '${GITTOOLS_LOGPATH}'
+    description: >-
+      path to logfile. Log file contents will be included in contents. Only the
+      last 6 lines will be included
+    type: string
+  token:
+    default: '${VCS_TOKEN}'
+    description: >-
+      GitHub API token for accessing issue comments endpoint. This should be set
+      to $VCS_TOKEN
+    type: string
+steps:
+  - git-tools-setup
+  - run:
+      command: |
+        echo $VCS_TYPE
+        if [ -z $CIRCLE_PULL_REQUEST ]
+        then
+          # The current commit is not a PR
+          echo "The current build is not a Pull Request. If you intend to open an pull request after this commit, all following commits will be commented"
+        else
+          # Comment on pull request
+          #
+          if [ $VCS_TYPE == "github" ]
+          then
+            # GitHub PR Comment Module
+            echo "GitHub PR Comment Module"
+            # Fetch PR Number
+            GITHUB_PR_NUM=$(echo $CIRCLE_PULL_REQUEST | rev | awk -F[/] '{print $1}')
+            # Fetch log
+            if [ ! -z $GITTOOLS_LOGPATH ]
+            then
+              PRCOMMENT_LOG="Log:\n$(cat $GITTOOLS_LOGPATH)"
+            fi
+            # Curl Request to post comment to PR
+            ## Currently this seems to only update the top most comment.
+            curl -s -H "Authorization: token ${VCS_TOKEN}" -X POST \
+            -d "{\"body\": \"${GIT_COMMIT_MESSAGE} ${PRCOMMENT_LOG}\"}" \
+            "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${GITHUB_PR_NUM}/comments"
+          elif [ $VCS_TYPE == "bitbucket" ]
+          then
+            # BitBucket PR Comment Module
+            echo "The BitBucket PRComment module is not yet complete. Please consider contributing a PR."
+          else
+            echo "The VCS type is not yet supported."
+          fi
+        fi
+      name: Commenting Pull Request

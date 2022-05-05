@@ -16,6 +16,7 @@ workflows:
       - orb-tools/pack:
           filters: *filters
       - orb-tools/review:
+          exclude: RC009
           filters: *filters
       - shellcheck/check:
           exclude: SC2148,SC2038,SC2086,SC2002,SC2016
@@ -27,7 +28,11 @@ workflows:
             [orb-tools/lint, orb-tools/review, orb-tools/pack, shellcheck/check]
           # Use a context to hold your publishing token.
           context: <publishing-context>
-          filters: *filters
+          filters:
+            branches:
+              only: main
+            tags:
+              only: /.*/
       # Triggers the next workflow in the Orb Development Kit.
       - orb-tools/continue:
           pipeline-number: << pipeline.number >>
