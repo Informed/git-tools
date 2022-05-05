@@ -1,3 +1,4 @@
+#!/bin/bash
 git fetch --tags
 
 if [ <<parameters.increment_tag>> = true ]; then # If the increment_tag parameter is enabled...

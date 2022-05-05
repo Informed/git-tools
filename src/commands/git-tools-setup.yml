@@ -1,35 +1,5 @@
 description: 'Optional: Used by other steps. Configure settings for multi-VCS support.'
 steps:
   - run:
-      command: >
-        # Setup any needed ENV VARS for all other commands here.
-
-        #
-
-        # Set VCS_TYPE
-
-        if [ ! -z $VCS_TYPE ] # Skip if already set.
-          then
-            echo "VCS already set:\ ${VCS_TYPE}"
-            exit 0
-        fi
-
-        echo "Setting VCS_TYPE"
-
-        VCS_TYPE=$(echo $CIRCLE_REPOSITORY_URL | grep -Po
-        '(?<=@)[a-z]*(?=.com)')
-
-        echo "VCS_TYPE is set to " $VCS_TYPE
-
-        echo "export VCS_TYPE=${VCS_TYPE}" >> $BASH_ENV
-
-        # Save commit message to GIT_COMMIT_MESSAGE
-
-        # GIT_COMMIT_MESSAGE=$(git log -1 --pretty=%B)
-
-        # echo "Git commit message: " $GIT_COMMIT_MESSAGE
-
-        # echo 'export GIT_COMMIT_MESSAGE="${GIT_COMMIT_MESSAGE}"' >> $BASH_ENV
-
-        echo "Setup complete"
+      command: <<include(scripts/gittoolssetup.sh)>>
       name: Git-Tools Setup
