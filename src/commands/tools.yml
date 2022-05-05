@@ -157,7 +157,7 @@ commands:
           git fetch --tags
           if [ <<parameters.increment_tag>> = true ]; then # If the increment_tag parameter is enabled...
             echo " [Increment tag selected] "
-            GITLATESTTAG=$(git tag --list "<<parameters.tag_pattern>>" | tail -1)
+            GITLATESTTAG=$(git tag --list "<<parameters.tag_pattern>>" | sort -V | tail -1)
             printf " Latest matching tag: $(git tag --list "<<parameters.tag_pattern>>" | tail -1)"
             if [[ $GITLATESTTAG =~ ^(.*)(([0-9]+)\.([0-9]+)\.([0-9]+))(-.*)? ]]; then # If the tag has a valid SEMVER then proceed with upgrade
               echo "    Prefix: ${BASH_REMATCH[1]}"
