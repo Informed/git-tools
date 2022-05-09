@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  <orb-name>: informed/git-tools@dev:<<pipeline.git.revision>>
+  git-tools: informed/git-tools@dev:<<pipeline.git.revision>>
   orb-tools: circleci/orb-tools@11.1
 
 filters: &filters
