@@ -17,6 +17,9 @@ jobs:
       - checkout
       # Run your orb's commands to validate them.
       - git-tools/committag:
+          increment_patch: true
+          increment_tag: true
+          tag_pattern: '*[0-9]'
           tag_prefix: foobar
 
 workflows:
