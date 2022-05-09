@@ -16,7 +16,10 @@ jobs:
       steps:
         - checkout
         # Run your orb's commands to validate them.
-        - <orb-name>/greet
+        - git-tools/prefix
+        -run:
+          name: verify prefix
+          command: command -v prefix foobar
 workflows:
   test-deploy:
     jobs:
