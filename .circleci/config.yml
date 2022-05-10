@@ -30,8 +30,8 @@ workflows:
           context: orb-publishing-context
           # pub-type: production
           filters:
-            # branches:
-            #   only: main
+            branches:
+              only: main
             tags:
               only: /.*/
       # Triggers the next workflow in the Orb Development Kit.
