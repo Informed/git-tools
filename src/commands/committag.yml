@@ -34,6 +34,11 @@ parameters:
       and prefix or suffix untouched. By default if set to true, a patch level
       increment will be made.
     type: boolean
+  tag_prefix:
+    default: ''
+    description: >-
+      Prefix to prepend to a SEMVER such as an app name in monorepo
+    type: string
   tag_pattern:
     default: '*'
     description: >-
@@ -51,8 +56,8 @@ steps:
           GITLATESTTAG=$(git tag --list "<<parameters.tag_pattern>>" | sort -V | tail -1)
           printf " Latest matching tag: $(git tag --list "<<parameters.tag_pattern>>" | sort -V | tail -1)"
           if [[ $GITLATESTTAG =~ ^(.*)(([0-9]+)\.([0-9]+)\.([0-9]+))(-.*)? ]]; then # If the tag has a valid SEMVER then proceed with upgrade
-            echo "    Prefix: ${BASH_REMATCH[1]}"
-            SEMPREFIX=${BASH_REMATCH[1]}
+            echo "    Incoming Prefix: ${BASH_REMATCH[1]}"
+            SEMPREFIX=${BASH_REMATCH[1]:-<<parameters.tag_prefix>>}
             echo "    Major: ${BASH_REMATCH[3]}"
             SEMVERMAJOR=${BASH_REMATCH[3]}
             echo "    Minor: ${BASH_REMATCH[4]}"

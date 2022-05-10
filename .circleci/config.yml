@@ -28,7 +28,7 @@ workflows:
             [orb-tools/lint, orb-tools/review, orb-tools/pack, shellcheck/check]
           # Use a context to hold your publishing token.
           context: orb-publishing-context
-          pub-type: production
+          # pub-type: production
           filters:
             branches:
               only: main
