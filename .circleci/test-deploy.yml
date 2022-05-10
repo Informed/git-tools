@@ -37,7 +37,7 @@ workflows:
           requires:
             - orb-tools/pack
             - command-tests
-          context: <publishing-context>
+          context: orb-publisher
           filters:
             branches:
               ignore: /.*/
